@@ -156,6 +156,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HibikurollApp() {
+    var splashVisible by rememberSaveable { mutableStateOf(true) }
+    if (splashVisible) {
+        HibikurollLaunchSplash { splashVisible = false }
+        return
+    }
     var showSplash by rememberSaveable { mutableStateOf(true) }
     var selected by rememberSaveable { mutableStateOf(Tab.HOME) }
     var profileOpen by rememberSaveable { mutableStateOf(false) }
