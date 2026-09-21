@@ -5,11 +5,16 @@
         name="Theme.Hibikuroll"
         parent="android:style/Theme.Material.NoActionBar">
 
-        <item name="android:fontFamily">sans</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:colorAccent">#FFC928</item>
         <item name="android:windowBackground">#000000</item>
+
+        <item name="android:windowSplashScreenBackground">#000000</item>
+        <item name="android:windowSplashScreenAnimatedIcon">
+            @drawable/hibikuroll_logo
+        </item>
+        <item name="android:windowSplashScreenIconBackgroundColor">
+            #000000
+        </item>
 
     </style>
 
