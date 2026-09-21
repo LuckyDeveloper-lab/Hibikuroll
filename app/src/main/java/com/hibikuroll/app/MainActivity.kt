@@ -373,58 +373,45 @@ private fun BottomDock(
     selected: MainTab,
     onSelected: (MainTab) -> Unit
 ) {
-
-    NavigationBar(
-        containerColor = AppBackground,
-        tonalElevation = 0.dp
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppBackground)
+            .padding(horizontal = 6.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-
         MainTab.values().forEach { tab ->
 
-            androidx.compose.material3.NavigationBarItem(
-                selected = selected == tab,
-                onClick = { onSelected(tab) },
+            val active = selected == tab
 
-                icon = {
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(30.dp))
-                            .background(
-                                if (selected == tab) {
-                                    AppPurple
-                                } else {
-                                    Color.Transparent
-                                }
-                            )
-                            .padding(
-                                horizontal = 24.dp,
-                                vertical = 8.dp
-                            )
-                    ) {
-
-                        Text(
-                            text = tab.icon,
-                            color = Color.White,
-                            fontSize = 24.sp
-                        )
-                    }
-                },
-
-                label = {
-
-                    Text(
-                        text = tab.title,
-                        color =
-                            if (selected == tab) {
-                                AppText
-                            } else {
-                                AppSubText
-                            },
-                        fontSize = 11.sp
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(
+                        if (active) AppPurple
+                        else Color.Transparent
                     )
-                }
-            )
+                    .clickable {
+                        onSelected(tab)
+                    }
+                    .padding(vertical = 7.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = tab.icon,
+                    color = Color.White,
+                    fontSize = 23.sp
+                )
+
+                Text(
+                    text = tab.title,
+                    color = if (active) AppText else AppSubText,
+                    fontSize = 10.sp,
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+                )
+            }
         }
     }
 }
@@ -546,9 +533,7 @@ private fun HomeScreen(
         item {
 
             Row(
-                modifier = Modifier.horizontalScroll(
-                    rememberScrollState = androidx.compose.foundation.rememberScrollState()
-                ),
+                modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
@@ -561,9 +546,7 @@ private fun HomeScreen(
         item {
 
             Row(
-                modifier = Modifier.horizontalScroll(
-                    rememberScrollState = androidx.compose.foundation.rememberScrollState()
-                ),
+                modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
@@ -593,9 +576,7 @@ private fun HomeScreen(
 
         item {
             Row(
-                modifier = Modifier.horizontalScroll(
-                    rememberScrollState = androidx.compose.foundation.rememberScrollState()
-                ),
+                modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
 
@@ -710,9 +691,7 @@ private fun LastWatched() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(
-                rememberScrollState = androidx.compose.foundation.rememberScrollState()
-            ),
+            .horizontalScroll(androidx.compose.foundation.rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -1489,7 +1468,7 @@ private fun SocialLineScreen(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
-                            .clickable { onProfile() }
+                            
                             .background(AppBlue),
                         contentAlignment = Alignment.Center
                     ) {
