@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -215,6 +217,7 @@ private fun HomeHeader(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
+                            .clickable { onProfile() }
                             .background(
                                 Brush.linearGradient(
                                     listOf(
@@ -290,11 +293,6 @@ private fun HomeHeader(
                         )
                     }
 
-                    TextButton(
-                        onClick = onProfile,
-                        modifier = Modifier.size(18.dp)
-                    ) {
-                    }
                 }
 
                 Row(
@@ -532,7 +530,7 @@ private fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
 
-                items(filtered) { anime ->
+                gridItems(filtered) { anime ->
                     AnimeGridCard(anime)
                 }
             }
@@ -1030,6 +1028,38 @@ private fun AutoCarousel() {
 }
 
 @Composable
+private fun SmallPoster(
+    anime: Anime
+) {
+    Column(
+        modifier = Modifier.width(150.dp)
+    ) {
+        PosterSurface(
+            anime = anime,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(210.dp)
+        )
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        Text(
+            text = anime.title,
+            color = AppText,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Text(
+            text = "${anime.episode} • ★ ${anime.rating}",
+            color = AppSubText,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
 private fun ScheduleScreen(
     padding: PaddingValues
 ) {
@@ -1459,6 +1489,7 @@ private fun SocialLineScreen(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
+                            .clickable { onProfile() }
                             .background(AppBlue),
                         contentAlignment = Alignment.Center
                     ) {
