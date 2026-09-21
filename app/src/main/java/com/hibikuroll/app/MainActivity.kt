@@ -161,16 +161,9 @@ private fun HibikurollApp() {
         HibikurollLaunchSplash { splashVisible = false }
         return
     }
-    var showSplash by rememberSaveable { mutableStateOf(true) }
     var selected by rememberSaveable { mutableStateOf(Tab.HOME) }
     var profileOpen by rememberSaveable { mutableStateOf(false) }
 
-    if (showSplash) {
-        HibikurollSplash {
-            showSplash = false
-        }
-        return
-    }
 
     if (profileOpen) {
         ProfileScreen(
@@ -203,99 +196,6 @@ private fun HibikurollApp() {
             selected = selected,
             onSelected = { selected = it },
             modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
-}
-
-@Composable
-private fun HibikurollSplash(
-    onFinished: () -> Unit
-) {
-    var phase by remember { mutableStateOf(0) }
-
-    val pulse = rememberInfiniteTransition(label = "splashPulse")
-    val pulseScale by pulse.animateFloat(
-        initialValue = 0.98f,
-        targetValue = 1.035f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScale"
-    )
-
-    LaunchedEffect(Unit) {
-        delay(350)
-        phase = 1
-        delay(1100)
-        phase = 2
-        delay(1600)
-        phase = 3
-        delay(2500)
-        phase = 4
-        delay(700)
-        onFinished()
-    }
-
-    val logoAlpha = when {
-        phase == 0 -> 0f
-        phase >= 1 -> 1f
-        else -> 0f
-    }
-
-    val nameAlpha = if (phase >= 2) 1f else 0f
-    val versionAlpha = if (phase >= 3) 1f else 0f
-    val fadeOut = if (phase >= 4) 0f else 1f
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .alpha(fadeOut),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(
-                    R.drawable.hibikuroll_logo
-                ),
-                contentDescription = "Hibikuroll",
-                modifier = Modifier
-                    .size(245.dp)
-                    .alpha(logoAlpha)
-                    .graphicsLayer {
-                        scaleX = if (phase >= 2) pulseScale else 0.55f
-                        scaleY = if (phase >= 2) pulseScale else 0.55f
-                        rotationZ = if (phase == 0) -7f else 0f
-                    }
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            Text(
-                text = "Hibikuroll",
-                color = Yellow,
-                fontSize = 34.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .alpha(nameAlpha)
-                    .graphicsLayer {
-                        translationY = if (nameAlpha > 0f) 0f else 20f
-                    }
-            )
-        }
-
-        Text(
-            text = "v1.1.1 ( 10 )",
-            color = Yellow,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp)
-                .alpha(versionAlpha)
         )
     }
 }
