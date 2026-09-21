@@ -134,6 +134,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HibikurollApp() {
 
+    var splashFinished by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if (!splashFinished) {
+        HibikurollLaunchSplash {
+            splashFinished = true
+        }
+        return
+    }
+
     var currentTab by rememberSaveable {
         mutableStateOf(MainTab.HOME.name)
     }
