@@ -1079,7 +1079,7 @@ private fun ScheduleScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.horizontalScroll(
-                    rememberScrollState()
+                    androidx.compose.foundation.rememberScrollState()
                 )
             ) {
 
