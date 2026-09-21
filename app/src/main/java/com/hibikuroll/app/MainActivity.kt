@@ -420,7 +420,11 @@ private fun BottomDock(
                     text = tab.title,
                     color = if (active) AppText else AppSubText,
                     fontSize = 10.sp,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (active) {
+                        FontWeight.Bold
+                    } else {
+                        FontWeight.Normal
+                    }
                 )
             }
         }
