@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Left ribbon -->
+    <path
+        android:fillColor="#FFD13A"
+        android:pathData="
+            M74,119
+            L270,14
+            L270,157
+            L222,183
+            L222,98
+            L122,151
+            L122,374
+            L222,321
+            L222,406
+            L74,489
+            Z" />
+
+    <!-- Center connector -->
+    <path
+        android:fillColor="#FFB52E"
+        android:pathData="
+            M222,183
+            L270,157
+            L320,187
+            L320,272
+            L270,299
+            L222,272
+            Z" />
+
+    <!-- Right ribbon -->
+    <path
+        android:fillColor="#FF9A32"
+        android:pathData="
+            M320,187
+            L438,120
+            L438,391
+            L270,489
+            L270,356
+            L320,328
+            L389,289
+            L389,197
+            L320,235
+            Z" />
+</vector>
