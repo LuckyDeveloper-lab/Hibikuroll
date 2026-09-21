@@ -3,10 +3,25 @@ package com.hibikuroll.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -15,28 +30,36 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -73,66 +96,34 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 
 private val Bg = Color(0xFF101114)
 private val Surface = Color(0xFF17191E)
-private val SurfaceAlt = Color(0xFF202632)
-private val Blue = Color(0xFF178FF2)
-private val Purple = Color(0xFF64559C)
-private val TextMain = Color(0xFFF3F3F5)
-private val TextSub = Color(0xFF9AA1AF)
+private val Surface2 = Color(0xFF1D2027)
+private val SurfaceBlue = Color(0xFF202938)
+private val Blue = Color(0xFF2497F3)
+private val Purple = Color(0xFF65569B)
 private val Yellow = Color(0xFFFFD447)
-private val OutlineGreen = Color(0xFF487354)
-
-private data class AnimeUi(
-    val title: String,
-    val episodes: String,
-    val rating: String,
-    val views: String,
-    val code: String,
-    val a: Color,
-    val b: Color
-)
-
-private val animes = listOf(
-    AnimeUi("Sayonara Lara", "12 Eps", "7.7", "12.2K", "SL", Color(0xFF0D75D9), Color(0xFF7F3A78)),
-    AnimeUi("One Piece", "1179 Eps", "8.7", "2.4M", "OP", Color(0xFF117CFF), Color(0xFF6548A2)),
-    AnimeUi("Kuroneko to Majo no Kyoushitsu", "24 Eps", "7.2", "75.5K", "KM", Color(0xFF0C7EBA), Color(0xFF593A80)),
-    AnimeUi("Nijusseiki Denki Mokuroku", "12 Eps", "7.5", "32K", "ND", Color(0xFFB17C3E), Color(0xFF5E4B40)),
-    AnimeUi("Hyakkano Season 3", "12 Eps", "8.3", "103K", "HY", Color(0xFFD86B90), Color(0xFF774D87)),
-    AnimeUi("Mushoku Tensei", "13 Eps", "8.8", "187.6K", "MT", Color(0xFF536D83), Color(0xFF252E51)),
-    AnimeUi("Digimon Beatbreak", "48 Eps", "7.1", "16.5K", "DB", Color(0xFF733E85), Color(0xFF20253C)),
-    AnimeUi("Mahou Shoujo Lyrical Nanoha", "12 Eps", "7.9", "41K", "ML", Color(0xFF6E8EA6), Color(0xFF9F4160)),
-    AnimeUi("Saijo no Osewa", "12 Eps", "6.9", "178.7K", "SO", Color(0xFF9F5B83), Color(0xFFE29A61)),
-    AnimeUi("Hanaori-san wa Tensei shitemo Kenka ga Shitai", "11 Eps", "7.2", "85.3K", "HA", Color(0xFF3E8AB5), Color(0xFF6E4E95)),
-    AnimeUi("\"Kimi wo Aisuru Ki wa Nai\" to Itt...", "12 Eps", "6.8", "70.7K", "KI", Color(0xFFB5A05C), Color(0xFF5A6F87)),
-    AnimeUi("Oni no Hanayome", "12 Eps", "7.0", "150.5K", "OH", Color(0xFFC96661), Color(0xFF493C59))
-)
-
-private val genres = listOf(
-    "Action", "Adult Cast", "Adventure", "Avant Garde",
-    "Award Winning", "Comedy", "Demons", "Drama",
-    "Ecchi", "Fantasy", "Game", "Girls Love", "Gore",
-    "Gourmet", "Harem", "Historical", "Horror", "Isekai",
-    "Josei", "Magic", "Martial Arts", "Mecha", "Military",
-    "Music", "Mystery", "Mythology", "Parody",
-    "Psychological", "Reincarnation", "Romance", "Samurai",
-    "School", "Sci-Fi", "Seinen", "Shoujo",
-    "Shoujo Ai", "Shounen", "Slice Of Life", "Space",
-    "Sports", "Super Power", "Supernatural", "Suspense",
-    "Thriller", "Time Travel", "Tokusatsu", "Vampire", "Movie"
-)
+private val TextMain = Color(0xFFF4F4F6)
+private val TextSub = Color(0xFF9BA3B1)
+private val GreenOutline = Color(0xFF487354)
 
 private enum class Tab(
-    val label: String
+    val title: String
 ) {
     HOME("Home"),
     SCHEDULE("Jadwal"),
@@ -141,7 +132,7 @@ private enum class Tab(
     SOCIAL("SocialLine")
 }
 
-private val AppColors = darkColorScheme(
+private val colors = darkColorScheme(
     primary = Blue,
     secondary = Purple,
     background = Bg,
@@ -152,9 +143,11 @@ private val AppColors = darkColorScheme(
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
         setContent {
-            MaterialTheme(colorScheme = AppColors) {
+            MaterialTheme(colorScheme = colors) {
                 HibikurollApp()
             }
         }
@@ -163,36 +156,141 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HibikurollApp() {
-    var tabName by rememberSaveable { mutableStateOf(Tab.HOME.name) }
+    var showSplash by rememberSaveable { mutableStateOf(true) }
+    var selected by rememberSaveable { mutableStateOf(Tab.HOME) }
     var profileOpen by rememberSaveable { mutableStateOf(false) }
 
-    if (profileOpen) {
-        ProfileScreen(onBack = { profileOpen = false })
+    if (showSplash) {
+        HibikurollSplash {
+            showSplash = false
+        }
         return
     }
 
-    val selected = Tab.valueOf(tabName)
+    if (profileOpen) {
+        ProfileScreen(
+            onBack = { profileOpen = false }
+        )
+        return
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Bg)
     ) {
-        when (selected) {
-            Tab.HOME -> HomeScreen(
-                modifier = Modifier.fillMaxSize(),
-                onProfile = { profileOpen = true }
-            )
-            Tab.SCHEDULE -> ScheduleScreen(Modifier.fillMaxSize())
-            Tab.SUBSCRIBED -> SubscribedScreen(Modifier.fillMaxSize())
-            Tab.HISTORY -> HistoryScreen(Modifier.fillMaxSize())
-            Tab.SOCIAL -> SocialLineScreen(Modifier.fillMaxSize())
+        AnimatedContent(
+            targetState = selected,
+            label = "screenTransition"
+        ) { tab ->
+            when (tab) {
+                Tab.HOME -> HomeScreen(
+                    onProfile = { profileOpen = true }
+                )
+                Tab.SCHEDULE -> ScheduleScreen()
+                Tab.SUBSCRIBED -> SubscribedScreen()
+                Tab.HISTORY -> HistoryScreen()
+                Tab.SOCIAL -> SocialLineScreen()
+            }
         }
 
         BottomDock(
             selected = selected,
-            onSelected = { tabName = it.name },
+            onSelected = { selected = it },
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+private fun HibikurollSplash(
+    onFinished: () -> Unit
+) {
+    var phase by remember { mutableStateOf(0) }
+
+    val pulse = rememberInfiniteTransition(label = "splashPulse")
+    val pulseScale by pulse.animateFloat(
+        initialValue = 0.98f,
+        targetValue = 1.035f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+
+    LaunchedEffect(Unit) {
+        delay(350)
+        phase = 1
+        delay(1100)
+        phase = 2
+        delay(1600)
+        phase = 3
+        delay(2500)
+        phase = 4
+        delay(700)
+        onFinished()
+    }
+
+    val logoAlpha = when {
+        phase == 0 -> 0f
+        phase >= 1 -> 1f
+        else -> 0f
+    }
+
+    val nameAlpha = if (phase >= 2) 1f else 0f
+    val versionAlpha = if (phase >= 3) 1f else 0f
+    val fadeOut = if (phase >= 4) 0f else 1f
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .alpha(fadeOut),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(
+                    R.drawable.hibikuroll_logo
+                ),
+                contentDescription = "Hibikuroll",
+                modifier = Modifier
+                    .size(245.dp)
+                    .alpha(logoAlpha)
+                    .graphicsLayer {
+                        scaleX = if (phase >= 2) pulseScale else 0.55f
+                        scaleY = if (phase >= 2) pulseScale else 0.55f
+                        rotationZ = if (phase == 0) -7f else 0f
+                    }
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            Text(
+                text = "Hibikuroll",
+                color = Yellow,
+                fontSize = 34.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .alpha(nameAlpha)
+                    .graphicsLayer {
+                        translationY = if (nameAlpha > 0f) 0f else 20f
+                    }
+            )
+        }
+
+        Text(
+            text = "v1.1.1 ( 10 )",
+            color = Yellow,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 40.dp)
+                .alpha(versionAlpha)
         )
     }
 }
@@ -206,13 +304,17 @@ private fun BottomDock(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Bg.copy(alpha = 0.97f))
-            .padding(horizontal = 6.dp, vertical = 5.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+            .navigationBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Tab.values().forEach { tab ->
             val active = selected == tab
+            val bg by animateColorAsState(
+                if (active) Purple else Color.Transparent,
+                label = "dockColor"
+            )
+
             val icon = when (tab) {
                 Tab.HOME -> Icons.Outlined.Home
                 Tab.SCHEDULE -> Icons.Outlined.CalendarMonth
@@ -224,20 +326,26 @@ private fun BottomDock(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(if (active) Purple else Color.Transparent)
-                    .clickable { onSelected(tab) }
-                    .padding(horizontal = 4.dp, vertical = 7.dp),
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(bg)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember {
+                            MutableInteractionSource()
+                        }
+                    ) { onSelected(tab) }
+                    .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = tab.label,
+                    contentDescription = tab.title,
                     tint = Color.White,
-                    modifier = Modifier.size(25.dp)
+                    modifier = Modifier.size(24.dp)
                 )
+
                 Text(
-                    text = tab.label,
+                    text = tab.title,
                     color = if (active) TextMain else TextSub,
                     fontSize = 10.sp,
                     fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
@@ -249,41 +357,54 @@ private fun BottomDock(
 
 @Composable
 private fun HomeScreen(
-    modifier: Modifier,
     onProfile: () -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    var loading by remember { mutableStateOf(true) }
+    var remote by remember { mutableStateOf<List<AnimeRemote>>(emptyList()) }
 
-    val filtered = remember(query) {
-        if (query.isBlank()) animes
-        else animes.filter {
-            it.title.contains(query, ignoreCase = true)
+    LaunchedEffect(Unit) {
+        loading = true
+        remote = AnimeApi.topAiring()
+        loading = false
+    }
+
+    LaunchedEffect(query) {
+        if (query.length < 2) return@LaunchedEffect
+
+        delay(450)
+
+        val result = AnimeApi.search(query)
+        if (result.isNotEmpty()) {
+            remote = result
         }
     }
 
+    val list = remote
+
     LazyColumn(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = 18.dp,
-            bottom = 105.dp
+            top = 16.dp,
+            bottom = 120.dp
         ),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            HomeProfileHeader(onProfile)
+            HomeHeader(onProfile)
         }
 
         item {
-            SearchBar(
+            SearchField(
                 value = query,
                 onValueChange = { query = it }
             )
         }
 
         item {
-            PremiumBanner()
+            PremiumCard()
         }
 
         item {
@@ -291,7 +412,7 @@ private fun HomeScreen(
         }
 
         item {
-            DiscussionCard()
+            DiscussionBar()
         }
 
         item {
@@ -302,7 +423,9 @@ private fun HomeScreen(
         }
 
         item {
-            ContinueWatching()
+            ContinueWatching(
+                source = list.take(2)
+            )
         }
 
         item {
@@ -313,11 +436,17 @@ private fun HomeScreen(
         }
 
         item {
-            AdaptiveAnimeGrid(filtered)
+            if (loading && list.isEmpty()) {
+                LoadingGrid()
+            } else {
+                AnimeGrid(list)
+            }
         }
 
         item {
-            SectionHeader("Genre Series", "")
+            SectionHeader(
+                title = "Genre Series"
+            )
         }
 
         item {
@@ -332,21 +461,27 @@ private fun HomeScreen(
         }
 
         item {
-            WeeklyCarousel()
+            WeeklyCarousel(
+                source = list.take(7)
+            )
         }
 
         item {
-            SectionHeader("Completed Anime", "")
+            SectionHeader(
+                title = "Completed Anime"
+            )
         }
 
         item {
-            CompletedRow()
+            CompletedCarousel(
+                source = list.take(6)
+            )
         }
     }
 }
 
 @Composable
-private fun HomeProfileHeader(
+private fun HomeHeader(
     onProfile: () -> Unit
 ) {
     Card(
@@ -368,7 +503,10 @@ private fun HomeProfileHeader(
                         .clip(CircleShape)
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFFC6A08F), Color(0xFF775A63))
+                                listOf(
+                                    Color(0xFFC9A18F),
+                                    Color(0xFF7A5B64)
+                                )
                             )
                         ),
                     contentAlignment = Alignment.Center
@@ -381,7 +519,7 @@ private fun HomeProfileHeader(
                     )
                 }
 
-                Spacer(Modifier.width(13.dp))
+                Spacer(Modifier.width(12.dp))
 
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -391,7 +529,9 @@ private fun HomeProfileHeader(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
+
                         Spacer(Modifier.width(7.dp))
+
                         Text(
                             text = "#1485221",
                             color = TextSub,
@@ -406,9 +546,11 @@ private fun HomeProfileHeader(
                             imageVector = Icons.Outlined.Cloud,
                             contentDescription = null,
                             tint = TextSub,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
-                        Spacer(Modifier.width(6.dp))
+
+                        Spacer(Modifier.width(5.dp))
+
                         Text(
                             text = "Lvl. 1",
                             color = TextSub,
@@ -417,23 +559,21 @@ private fun HomeProfileHeader(
                     }
                 }
 
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Outlined.NotificationsNone,
-                        contentDescription = "Notifikasi",
-                        tint = TextMain,
-                        modifier = Modifier.size(29.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Outlined.NotificationsNone,
+                    contentDescription = null,
+                    tint = TextMain,
+                    modifier = Modifier.size(29.dp)
+                )
 
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = "Cari",
-                        tint = TextMain,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
+                Spacer(Modifier.width(17.dp))
+
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = null,
+                    tint = TextMain,
+                    modifier = Modifier.size(29.dp)
+                )
             }
 
             Row(
@@ -441,39 +581,50 @@ private fun HomeProfileHeader(
                     .fillMaxWidth()
                     .background(
                         Brush.horizontalGradient(
-                            listOf(Color(0xFF5A4039), Color(0xFF3A3543))
+                            listOf(
+                                Color(0xFF5C4039),
+                                Color(0xFF3B3542)
+                            )
                         )
                     )
-                    .padding(horizontal = 18.dp, vertical = 12.dp),
+                    .padding(
+                        horizontal = 18.dp,
+                        vertical = 12.dp
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "✦  0",
+                    text = "✦ 0",
                     color = TextMain,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
                 )
+
                 Spacer(Modifier.width(6.dp))
+
                 Text(
                     text = "Crystal",
                     color = TextSub,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
                 )
 
                 Spacer(Modifier.weight(1f))
 
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(Color(0xFF62345E))
-                        .padding(horizontal = 18.dp, vertical = 9.dp)
+                        .clip(RoundedCornerShape(25.dp))
+                        .background(Color(0xFF61365E))
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 9.dp
+                        )
                 ) {
                     Text(
                         text = "✦ AniGames",
                         color = Yellow,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -482,7 +633,7 @@ private fun HomeProfileHeader(
 }
 
 @Composable
-private fun SearchBar(
+private fun SearchField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
@@ -491,6 +642,7 @@ private fun SearchBar(
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
+        shape = RoundedCornerShape(34.dp),
         placeholder = {
             Text(
                 text = "Mencari anime",
@@ -502,20 +654,26 @@ private fun SearchBar(
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = null,
-                tint = TextSub,
-                modifier = Modifier.size(25.dp)
+                tint = TextSub
             )
         },
-        shape = RoundedCornerShape(34.dp)
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = {}
+        )
     )
 }
 
 @Composable
-private fun PremiumBanner() {
+private fun PremiumCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF4C3837))
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF503A39)
+        )
     ) {
         Row(
             modifier = Modifier.padding(13.dp),
@@ -524,7 +682,7 @@ private fun PremiumBanner() {
             Box(
                 modifier = Modifier
                     .size(67.dp)
-                    .clip(RoundedCornerShape(21.dp))
+                    .clip(RoundedCornerShape(20.dp))
                     .background(Yellow),
                 contentAlignment = Alignment.Center
             ) {
@@ -536,18 +694,17 @@ private fun PremiumBanner() {
                 )
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(13.dp))
 
             Button(
                 onClick = {},
+                shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Blue
-                ),
-                shape = RoundedCornerShape(32.dp)
+                )
             ) {
                 Text(
                     text = "BELI PREMIUM DI SINI",
-                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -559,14 +716,14 @@ private fun PremiumBanner() {
 private fun GiveawayCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(25.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF062E43)
+            containerColor = Color(0xFF063149)
         )
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
-                text = "♛ TOP GIVEAWAY USERS  ♛",
+                text = "♛ TOP GIVEAWAY USERS ♛",
                 color = Yellow,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
@@ -575,21 +732,17 @@ private fun GiveawayCard() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceAround
+                    .padding(vertical = 7.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                GiveawayAvatar("1", animes[1])
-                GiveawayAvatar("2", animes[4])
-                GiveawayAvatar("3", animes[5])
+                GiveawayAvatar("#1", "Tama")
+                GiveawayAvatar("#2", "flyRoxy")
+                GiveawayAvatar("#3", "CL")
             }
 
-            Spacer(Modifier.height(9.dp))
-
-            GiveawayRow(1, "『冥』 Tama 愛 Acha", "172481d")
-            GiveawayRow(2, "flyRoxy.`", "164333d")
-            GiveawayRow(3, "Cl...", "93150d")
-            GiveawayRow(4, "冬...", "80175d")
-            GiveawayRow(5, "毒...", "69368d")
+            GiveawayLine(1, "『冥』 Tama 愛 Acha", "172481d")
+            GiveawayLine(2, "flyRoxy.`", "164333d")
+            GiveawayLine(3, "Cl...", "93150d")
         }
     }
 }
@@ -597,30 +750,34 @@ private fun GiveawayCard() {
 @Composable
 private fun GiveawayAvatar(
     rank: String,
-    anime: AnimeUi
+    name: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(78.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(listOf(anime.a, anime.b))
+                    Brush.linearGradient(
+                        listOf(
+                            Color(0xFF47A8E6),
+                            Color(0xFF5E4AAB)
+                        )
+                    )
                 ),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = anime.code,
+                text = name.take(2).uppercase(),
                 color = Color.White,
-                fontWeight = FontWeight.Black,
-                fontSize = 18.sp
+                fontWeight = FontWeight.Black
             )
         }
 
         Text(
-            text = "#$rank",
+            text = rank,
             color = Yellow,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp
@@ -629,29 +786,32 @@ private fun GiveawayAvatar(
 }
 
 @Composable
-private fun GiveawayRow(
+private fun GiveawayLine(
     rank: Int,
-    user: String,
+    name: String,
     points: String
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF3A596A))
-            .padding(horizontal = 12.dp, vertical = 7.dp),
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFF3B5C6E))
+            .padding(
+                horizontal = 12.dp,
+                vertical = 7.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "#$rank",
-            color = if (rank <= 2) Yellow else TextMain,
+            color = Yellow,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.width(36.dp)
         )
 
         Text(
-            text = user,
+            text = name,
             color = TextMain,
             modifier = Modifier.weight(1f),
             maxLines = 1,
@@ -661,18 +821,20 @@ private fun GiveawayRow(
         Text(
             text = points,
             color = Yellow,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
-private fun DiscussionCard() {
+private fun DiscussionBar() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface)
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(
@@ -682,13 +844,13 @@ private fun DiscussionCard() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "▣  Public Diskusi",
+                text = "▣ Public Diskusi",
                 color = TextMain,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.width(9.dp))
+            Spacer(Modifier.width(10.dp))
 
             Text(
                 text = "|",
@@ -708,8 +870,7 @@ private fun DiscussionCard() {
             Icon(
                 imageVector = Icons.Outlined.ArrowForward,
                 contentDescription = null,
-                tint = Yellow,
-                modifier = Modifier.size(25.dp)
+                tint = Yellow
             )
         }
     }
@@ -718,7 +879,7 @@ private fun DiscussionCard() {
 @Composable
 private fun SectionHeader(
     title: String,
-    action: String
+    action: String = ""
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -742,6 +903,7 @@ private fun SectionHeader(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
+
                 Icon(
                     imageVector = Icons.Outlined.ChevronRight,
                     contentDescription = null,
@@ -754,56 +916,72 @@ private fun SectionHeader(
 }
 
 @Composable
-private fun ContinueWatching() {
+private fun ContinueWatching(
+    source: List<AnimeRemote>
+) {
+    val list = source.ifEmpty {
+        listOf(
+            AnimeRemote(
+                id = 21,
+                title = "One Piece",
+                imageUrl = "",
+                score = 8.7,
+                episodes = 1179,
+                members = 2400000,
+                airing = true,
+                broadcastDay = null,
+                broadcastTime = null
+            ),
+            AnimeRemote(
+                id = 34572,
+                title = "Black Clover",
+                imageUrl = "",
+                score = 8.1,
+                episodes = 170,
+                members = 56800,
+                airing = true,
+                broadcastDay = null,
+                broadcastTime = null
+            )
+        )
+    }
+
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(end = 8.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(animes.take(2)) { anime ->
+        items(list) { anime ->
             Card(
-                modifier = Modifier.width(260.dp),
+                modifier = Modifier.width(265.dp),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                )
             ) {
                 Column {
-                    PosterArt(
+                    Poster(
                         anime = anime,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(145.dp),
-                        showNew = false,
-                        showRating = false,
-                        showEpisodes = false
+                            .height(150.dp)
                     )
 
-                    Column(Modifier.padding(12.dp)) {
+                    Column(Modifier.padding(11.dp)) {
                         Text(
                             text = anime.title,
                             color = TextMain,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
                         )
+
                         Text(
-                            text = "${anime.episodes}  •  01:19 / 23:52",
+                            text = "${anime.episodes ?: "-"} Eps • 01:19 / 23:52",
                             color = TextSub,
                             fontSize = 12.sp
                         )
+
                         Spacer(Modifier.height(7.dp))
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(5.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(Color(0xFF343946))
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.68f)
-                                    .height(5.dp)
-                                    .background(Blue)
-                            )
-                        }
+                        ProgressBar(0.67f)
                     }
                 }
             }
@@ -812,34 +990,29 @@ private fun ContinueWatching() {
 }
 
 @Composable
-private fun AdaptiveAnimeGrid(
-    list: List<AnimeUi>
+private fun AnimeGrid(
+    source: List<AnimeRemote>
 ) {
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val columns = if (maxWidth >= 650.dp) 5 else 3
-        val rows = list.chunked(columns)
+    BoxWithConstraints {
+        val columns = if (maxWidth < 650.dp) 3 else 5
+        val rows = source.chunked(columns)
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(17.dp)
         ) {
             rows.forEach { row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
                     row.forEach { anime ->
-                        Box(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            AnimeCard(anime)
+                        Box(Modifier.weight(1f)) {
+                            AnimeGridCard(anime)
                         }
                     }
 
                     repeat(columns - row.size) {
-                        Spacer(
-                            modifier = Modifier
-                                .weight(1f)
-                        )
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }
@@ -848,13 +1021,11 @@ private fun AdaptiveAnimeGrid(
 }
 
 @Composable
-private fun AnimeCard(
-    anime: AnimeUi
+private fun AnimeGridCard(
+    anime: AnimeRemote
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        PosterArt(
+    Column {
+        Poster(
             anime = anime,
             modifier = Modifier
                 .fillMaxWidth()
@@ -864,13 +1035,13 @@ private fun AnimeCard(
             showEpisodes = true
         )
 
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(7.dp))
 
         Text(
             text = anime.title,
             color = TextMain,
             fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
+            fontSize = 14.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -882,71 +1053,69 @@ private fun AnimeCard(
                 imageVector = Icons.Outlined.Visibility,
                 contentDescription = null,
                 tint = TextSub,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(13.dp)
             )
             Spacer(Modifier.width(4.dp))
             Text(
-                text = anime.views,
+                text = compactCount(anime.members),
                 color = TextSub,
-                fontSize = 11.sp
+                fontSize = 10.sp
             )
         }
     }
 }
 
 @Composable
-private fun PosterArt(
-    anime: AnimeUi,
+private fun Poster(
+    anime: AnimeRemote,
     modifier: Modifier,
-    showNew: Boolean,
-    showRating: Boolean,
-    showEpisodes: Boolean
+    showNew: Boolean = false,
+    showRating: Boolean = true,
+    showEpisodes: Boolean = false
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(17.dp))
             .background(
                 Brush.linearGradient(
-                    listOf(anime.a, anime.b)
+                    listOf(
+                        Color(0xFF226FE3),
+                        Color(0xFF6B408D)
+                    )
                 )
             )
     ) {
-        Box(
-            modifier = Modifier
-                .size(150.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = 35.dp, y = (-20).dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.10f))
-        )
-
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.BottomStart)
-                .offset(x = (-20).dp, y = 20.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.14f))
-        )
-
-        Text(
-            text = anime.code,
-            color = Color.White.copy(alpha = 0.92f),
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.align(Alignment.Center)
-        )
+        if (anime.imageUrl.isNotBlank()) {
+            AsyncImage(
+                model = anime.imageUrl,
+                contentDescription = anime.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Text(
+                text = anime.title
+                    .split(" ")
+                    .take(2)
+                    .joinToString("") { it.take(1) }
+                    .uppercase(),
+                color = Color.White,
+                fontSize = 38.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(82.dp)
+                .height(90.dp)
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
                         listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.78f)
+                            Color.Black.copy(alpha = 0.82f)
                         )
                     )
                 )
@@ -958,17 +1127,20 @@ private fun PosterArt(
                     .align(Alignment.TopStart)
                     .clip(
                         RoundedCornerShape(
-                            bottomEnd = 18.dp
+                            bottomEnd = 16.dp
                         )
                     )
                     .background(Blue)
-                    .padding(horizontal = 11.dp, vertical = 7.dp)
+                    .padding(
+                        horizontal = 10.dp,
+                        vertical = 7.dp
+                    )
             ) {
                 Text(
                     text = "New",
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -978,22 +1150,33 @@ private fun PosterArt(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(7.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xD6000000))
-                    .padding(horizontal = 9.dp, vertical = 5.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xD9000000))
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 5.dp
+                    )
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.Star,
                         contentDescription = null,
                         tint = Yellow,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
+
                     Spacer(Modifier.width(3.dp))
+
                     Text(
-                        text = anime.rating,
+                        text = if (anime.score > 0) {
+                            String.format("%.1f", anime.score)
+                        } else {
+                            "-"
+                        },
                         color = Yellow,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -1002,15 +1185,35 @@ private fun PosterArt(
 
         if (showEpisodes) {
             Text(
-                text = anime.episodes,
+                text = "${anime.episodes ?: "-"} Eps",
                 color = Color.White,
-                fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(10.dp)
+                    .padding(9.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun ProgressBar(
+    value: Float
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(5.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color(0xFF353943))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(value)
+                .height(5.dp)
+                .background(Blue)
+        )
     }
 }
 
@@ -1019,9 +1222,13 @@ private fun GenreCloud() {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        val rows = genres.chunked(4)
-
-        rows.forEach { row ->
+        listOf(
+            "Action", "Adult Cast", "Adventure", "Comedy",
+            "Magic", "Martial Arts", "Mecha", "Military",
+            "Mystery", "Romance", "School", "Sci-Fi",
+            "Shoujo", "Shounen", "Sports", "Supernatural",
+            "Suspense", "Thriller", "Time Travel", "Movie"
+        ).chunked(4).forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1030,13 +1237,12 @@ private fun GenreCloud() {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(22.dp))
-                            .background(Bg)
                             .border(
-                                BorderStroke(1.dp, OutlineGreen),
+                                BorderStroke(1.dp, GreenOutline),
                                 RoundedCornerShape(22.dp)
                             )
                             .padding(
-                                horizontal = 13.dp,
+                                horizontal = 12.dp,
                                 vertical = 8.dp
                             )
                     ) {
@@ -1054,116 +1260,95 @@ private fun GenreCloud() {
 }
 
 @Composable
-private fun WeeklyCarousel() {
-    val state = rememberLazyListState()
-    val loopItems = remember {
-        List(12) { index -> animes[index % animes.size] }
-    }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(2400)
-            val next = state.firstVisibleItemIndex + 1
-            state.animateScrollToItem(next)
-            if (next >= loopItems.size - 1) {
-                state.scrollToItem(0)
-            }
-        }
-    }
-
-    LazyRow(
-        state = state,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        contentPadding = PaddingValues(end = 12.dp)
-    ) {
-        items(loopItems) { anime ->
-            WeeklyCard(anime)
-        }
-    }
-}
-
-@Composable
-private fun WeeklyCard(
-    anime: AnimeUi
+private fun WeeklyCarousel(
+    source: List<AnimeRemote>
 ) {
-    Card(
-        modifier = Modifier.width(280.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface)
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(13.dp)
     ) {
-        Box {
-            PosterArt(
-                anime = anime,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(190.dp),
-                showNew = false,
-                showRating = true,
-                showEpisodes = true
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .clip(
-                        RoundedCornerShape(
-                            bottomEnd = 18.dp
-                        )
-                    )
-                    .background(Yellow)
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
-            ) {
-                Text(
-                    text = "#1",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Black
+        items(source) { anime ->
+            Card(
+                modifier = Modifier.width(286.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
                 )
-            }
+            ) {
+                Box {
+                    Poster(
+                        anime = anime,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(190.dp),
+                        showNew = false,
+                        showRating = true,
+                        showEpisodes = false
+                    )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomStart)
-                    .padding(top = 110.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color.Transparent,
-                                Surface.copy(alpha = 0.95f)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .clip(
+                                RoundedCornerShape(
+                                    bottomEnd = 18.dp
+                                )
                             )
+                            .background(Yellow)
+                            .padding(
+                                horizontal = 14.dp,
+                                vertical = 9.dp
+                            )
+                    ) {
+                        Text(
+                            text = "#1",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Black
                         )
-                    )
-                    .padding(12.dp)
-            ) {
-                Text(
-                    text = anime.title,
-                    color = TextMain,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
-                Text(
-                    text = "◉ ${anime.views} views",
-                    color = TextSub,
-                    fontSize = 12.sp
-                )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = anime.title,
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = "◉ ${compactCount(anime.members)} views",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CompletedRow() {
+private fun CompletedCarousel(
+    source: List<AnimeRemote>
+) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(end = 8.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(animes.take(6)) { anime ->
-            Box(Modifier.width(150.dp)) {
-                PosterArt(
+        items(source) { anime ->
+            Box(
+                modifier = Modifier.width(155.dp)
+            ) {
+                Poster(
                     anime = anime,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(215.dp),
+                        .height(225.dp),
                     showNew = false,
                     showRating = true,
                     showEpisodes = false
@@ -1174,21 +1359,52 @@ private fun CompletedRow() {
 }
 
 @Composable
-private fun ScheduleScreen(
-    modifier: Modifier
-) {
-    val days = listOf("Senin", "Selasa", "Rabu", "Kamis", "Jumat")
-    val times = listOf("--:--", "18:57", "19:00", "20:30", "21:30", "22:00")
+private fun LoadingGrid() {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        repeat(3) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(0.68f)
+                    .clip(RoundedCornerShape(17.dp))
+                    .background(Surface2)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScheduleScreen() {
+    var selectedDay by rememberSaveable { mutableStateOf("monday") }
+    var data by remember { mutableStateOf<List<AnimeRemote>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+
+    val labels = listOf(
+        "monday" to "Senin",
+        "tuesday" to "Selasa",
+        "wednesday" to "Rabu",
+        "thursday" to "Kamis",
+        "friday" to "Jumat"
+    )
+
+    LaunchedEffect(selectedDay) {
+        loading = true
+        data = AnimeApi.schedule(selectedDay)
+        loading = false
+    }
 
     LazyColumn(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = 22.dp,
-            bottom = 110.dp
+            top = 20.dp,
+            bottom = 120.dp
         ),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Text(
@@ -1197,7 +1413,7 @@ private fun ScheduleScreen(
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
         }
 
@@ -1205,72 +1421,68 @@ private fun ScheduleScreen(
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(days) { day ->
+                items(labels) { (key, label) ->
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(22.dp))
                             .background(
-                                if (day == "Senin") Blue else Surface
+                                if (selectedDay == key) Blue
+                                else Surface
                             )
-                            .padding(horizontal = 22.dp, vertical = 12.dp)
+                            .clickable { selectedDay = key }
+                            .padding(
+                                horizontal = 20.dp,
+                                vertical = 12.dp
+                            )
                     ) {
                         Text(
-                            text = day,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
-
-        items(times.size) { index ->
-            ScheduleTimelineRow(
-                time = times[index],
-                anime = animes[index % animes.size],
-                first = index == 0
-            )
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(SurfaceAlt)
-                        .padding(horizontal = 18.dp, vertical = 12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Selasa",
+                            text = label,
                             color = TextMain,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(Modifier.width(9.dp))
-                        Icon(
-                            imageVector = Icons.Outlined.ArrowForward,
-                            contentDescription = null,
-                            tint = TextMain
-                        )
                     }
                 }
             }
+        }
+
+        if (loading) {
+            item {
+                Text(
+                    text = "Memuat jadwal...",
+                    color = TextSub,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        items(
+            if (data.isEmpty()) {
+                listOf(
+                    AnimeRemote(
+                        id = 0,
+                        title = "Belum ada data jadwal",
+                        imageUrl = "",
+                        score = 0.0,
+                        episodes = null,
+                        members = 0,
+                        airing = false,
+                        broadcastDay = null,
+                        broadcastTime = null
+                    )
+                )
+            } else {
+                data.take(8)
+            }
+        ) { anime ->
+            ScheduleItem(anime)
         }
     }
 }
 
 @Composable
-private fun ScheduleTimelineRow(
-    time: String,
-    anime: AnimeUi,
-    first: Boolean
+private fun ScheduleItem(
+    anime: AnimeRemote
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1281,13 +1493,13 @@ private fun ScheduleTimelineRow(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = time,
+                text = anime.broadcastTime ?: "--:--",
                 color = Yellow,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 14.sp
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
             Box(
                 modifier = Modifier
@@ -1299,51 +1511,54 @@ private fun ScheduleTimelineRow(
             Box(
                 modifier = Modifier
                     .width(3.dp)
-                    .height(118.dp)
-                    .background(Color(0xFF56524B))
+                    .height(120.dp)
+                    .background(Color(0xFF58544C))
             )
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(7.dp))
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceAlt)
+                .height(122.dp),
+            shape = RoundedCornerShape(21.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = SurfaceBlue
+            )
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.padding(11.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PosterArt(
+                Poster(
                     anime = anime,
-                    modifier = Modifier.size(86.dp),
+                    modifier = Modifier.size(87.dp),
                     showNew = false,
-                    showRating = false,
-                    showEpisodes = false
+                    showRating = false
                 )
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(11.dp))
 
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = anime.title,
                         color = TextMain,
-                        fontSize = 17.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
 
                     Text(
-                        text = anime.episodes,
+                        text = "${anime.episodes ?: "-"} Eps",
                         color = TextSub,
                         fontSize = 13.sp
                     )
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             imageVector = Icons.Outlined.Visibility,
                             contentDescription = null,
@@ -1352,11 +1567,13 @@ private fun ScheduleTimelineRow(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = anime.views,
+                            text = compactCount(anime.members),
                             color = TextSub,
                             fontSize = 11.sp
                         )
-                        Spacer(Modifier.width(9.dp))
+
+                        Spacer(Modifier.width(8.dp))
+
                         Icon(
                             imageVector = Icons.Outlined.Star,
                             contentDescription = null,
@@ -1365,7 +1582,11 @@ private fun ScheduleTimelineRow(
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
-                            text = anime.rating,
+                            text = if (anime.score > 0) {
+                                String.format("%.1f", anime.score)
+                            } else {
+                                "-"
+                            },
                             color = TextSub,
                             fontSize = 11.sp
                         )
@@ -1377,21 +1598,19 @@ private fun ScheduleTimelineRow(
 }
 
 @Composable
-private fun SubscribedScreen(
-    modifier: Modifier
-) {
+private fun SubscribedScreen() {
     var sort by rememberSaveable { mutableStateOf("Terbaru") }
-    var menuOpen by rememberSaveable { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     LazyColumn(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = 22.dp,
-            bottom = 110.dp
+            top = 20.dp,
+            bottom = 120.dp
         ),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(11.dp)
     ) {
         item {
             Text(
@@ -1400,7 +1619,7 @@ private fun SubscribedScreen(
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
         }
 
@@ -1410,20 +1629,17 @@ private fun SubscribedScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Total (${animes.size})",
+                    text = "Total (8)",
                     color = TextMain,
                     fontSize = 22.sp,
                     modifier = Modifier.weight(1f)
                 )
 
                 Box {
-                    TextButton(
-                        onClick = { menuOpen = true }
-                    ) {
+                    TextButton(onClick = { expanded = true }) {
                         Text(
                             text = sort,
-                            color = TextMain,
-                            fontSize = 15.sp
+                            color = TextMain
                         )
                         Icon(
                             imageVector = Icons.Outlined.KeyboardArrowDown,
@@ -1433,15 +1649,15 @@ private fun SubscribedScreen(
                     }
 
                     DropdownMenu(
-                        expanded = menuOpen,
-                        onDismissRequest = { menuOpen = false }
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
                     ) {
-                        listOf("Terbaru", "A-Z", "Rating").forEach { value ->
+                        listOf("Terbaru", "A-Z", "Rating").forEach { label ->
                             DropdownMenuItem(
-                                text = { Text(value) },
+                                text = { Text(label) },
                                 onClick = {
-                                    sort = value
-                                    menuOpen = false
+                                    sort = label
+                                    expanded = false
                                 }
                             )
                         }
@@ -1450,45 +1666,53 @@ private fun SubscribedScreen(
             }
         }
 
-        items(animes) { anime ->
-            SubscriptionRow(anime)
+        items(
+            listOf(
+                "One Piece", "Black Clover",
+                "Naruto: Shippuuden", "Bleach",
+                "Mushoku Tensei", "Neon Samurai",
+                "Digimon Beatbreak", "Hanaori-san"
+            )
+        ) { title ->
+            SubscriptionCard(title)
         }
     }
 }
 
 @Composable
-private fun SubscriptionRow(
-    anime: AnimeUi
+private fun SubscriptionCard(
+    title: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(21.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface)
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PosterArt(
-                anime = anime,
-                modifier = Modifier.size(92.dp),
-                showNew = false,
-                showRating = true,
-                showEpisodes = false
+            PlaceholderPoster(
+                title = title,
+                modifier = Modifier.size(92.dp)
             )
 
             Spacer(Modifier.width(13.dp))
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = anime.title,
+                    text = title,
                     color = TextMain,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+
                 Spacer(Modifier.height(5.dp))
+
                 Text(
                     text = "Update terbaru tersedia",
                     color = Blue,
@@ -1499,114 +1723,106 @@ private fun SubscriptionRow(
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = TextSub,
-                modifier = Modifier.size(29.dp)
+                tint = TextSub
             )
         }
     }
 }
 
 @Composable
-private fun HistoryScreen(
+private fun PlaceholderPoster(
+    title: String,
     modifier: Modifier
 ) {
-    var multi by rememberSaveable { mutableStateOf(false) }
-
-    Box(modifier = modifier) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 22.dp,
-                bottom = 150.dp
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color(0xFF1F71D7),
+                        Color(0xFF774A92)
+                    )
+                )
             ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Text(
-                    text = "Riwayat Menonton",
-                    color = TextMain,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-                Text(
-                    text = "Tahan series untuk pilih & hapus",
-                    color = TextSub,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title
+                .split(" ")
+                .take(2)
+                .joinToString("") { it.take(1) }
+                .uppercase(),
+            color = Color.White,
+            fontWeight = FontWeight.Black,
+            fontSize = 21.sp
+        )
+    }
+}
 
-            item {
-                DayChip("Hari ini")
-            }
+@Composable
+private fun HistoryScreen() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 20.dp,
+            bottom = 120.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(11.dp)
+    ) {
+        item {
+            Text(
+                text = "Riwayat Menonton",
+                color = TextMain,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-            items(animes.take(2)) { anime ->
-                HistoryRow(anime)
-            }
-
-            item {
-                DayChip("Kemarin")
-            }
-
-            items(animes.drop(2).take(2)) { anime ->
-                HistoryRow(anime)
-            }
+            Text(
+                text = "Tahan series untuk pilih & hapus",
+                color = TextSub,
+                fontSize = 13.sp
+            )
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = 16.dp,
-                    bottom = 92.dp
-                )
-                .clip(RoundedCornerShape(30.dp))
-                .background(SurfaceAlt)
-        ) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(if (!multi) Blue else Color.Transparent)
-                    .clickable { multi = false }
-                    .padding(horizontal = 21.dp, vertical = 11.dp)
-            ) {
-                Text(
-                    text = "SINGLE",
-                    color = if (!multi) Color.White else TextSub,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        item { DayLabel("Hari ini") }
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(if (multi) Blue else Color.Transparent)
-                    .clickable { multi = true }
-                    .padding(horizontal = 21.dp, vertical = 11.dp)
-            ) {
-                Text(
-                    text = "MULTI",
-                    color = if (multi) Color.White else TextSub,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        items(
+            listOf(
+                "One Piece" to 1f,
+                "Black Clover" to .38f
+            )
+        ) { (title, progress) ->
+            HistoryCard(title, progress)
+        }
+
+        item { DayLabel("Kemarin") }
+
+        items(
+            listOf(
+                "Naruto: Shippuuden" to .42f,
+                "Bleach" to .29f
+            )
+        ) { (title, progress) ->
+            HistoryCard(title, progress)
         }
     }
 }
 
 @Composable
-private fun DayChip(
+private fun DayLabel(
     text: String
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(25.dp))
+            .clip(RoundedCornerShape(24.dp))
             .background(Blue)
-            .padding(horizontal = 20.dp, vertical = 11.dp)
+            .padding(
+                horizontal = 20.dp,
+                vertical = 11.dp
+            )
     ) {
         Text(
             text = text,
@@ -1617,31 +1833,31 @@ private fun DayChip(
 }
 
 @Composable
-private fun HistoryRow(
-    anime: AnimeUi
+private fun HistoryCard(
+    title: String,
+    progress: Float
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface)
+        shape = RoundedCornerShape(21.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PosterArt(
-                anime = anime,
-                modifier = Modifier.size(90.dp),
-                showNew = false,
-                showRating = false,
-                showEpisodes = false
+            PlaceholderPoster(
+                title,
+                Modifier.size(92.dp)
             )
 
             Spacer(Modifier.width(13.dp))
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = anime.title,
+                    text = title,
                     color = TextMain,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -1650,48 +1866,30 @@ private fun HistoryRow(
                 )
 
                 Text(
-                    text = "${anime.episodes} • Hari ini",
-                    color = TextSub,
-                    fontSize = 13.sp
+                    text = "1179 Eps • Hari ini",
+                    color = TextSub
                 )
 
                 Spacer(Modifier.height(9.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(5.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Color(0xFF363A44))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(
-                                if (anime.title == "One Piece") 1f else 0.35f
-                            )
-                            .height(5.dp)
-                            .background(Blue)
-                    )
-                }
+                ProgressBar(progress)
             }
         }
     }
 }
 
 @Composable
-private fun SocialLineScreen(
-    modifier: Modifier
-) {
-    Box(modifier = modifier) {
+private fun SocialLineScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                top = 22.dp,
-                bottom = 115.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                top = 20.dp,
+                bottom = 120.dp
+            )
         ) {
             item {
                 Row(
@@ -1705,8 +1903,8 @@ private fun SocialLineScreen(
                             .background(
                                 Brush.linearGradient(
                                     listOf(
-                                        Color(0xFFC6A08F),
-                                        Color(0xFF775A63)
+                                        Color(0xFFC9A18F),
+                                        Color(0xFF7A5B64)
                                     )
                                 )
                             ),
@@ -1715,7 +1913,7 @@ private fun SocialLineScreen(
                         Text(
                             text = "L",
                             color = Color.White,
-                            fontSize = 30.sp,
+                            fontSize = 31.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -1727,8 +1925,9 @@ private fun SocialLineScreen(
                             text = "Lucky",
                             color = TextMain,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontSize = 19.sp
                         )
+
                         Text(
                             text = "Belum ada aktivitas pertemanan.",
                             color = TextSub,
@@ -1738,7 +1937,7 @@ private fun SocialLineScreen(
 
                     Icon(
                         imageVector = Icons.Outlined.Settings,
-                        contentDescription = "Pengaturan",
+                        contentDescription = null,
                         tint = TextMain,
                         modifier = Modifier.size(28.dp)
                     )
@@ -1746,22 +1945,25 @@ private fun SocialLineScreen(
             }
 
             item {
-                Spacer(Modifier.height(235.dp))
+                Spacer(Modifier.height(250.dp))
+
                 Text(
                     text = "Belum ada aktivitas pertemanan.",
                     color = TextSub,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(7.dp))
+
+                Spacer(Modifier.height(6.dp))
+
                 Text(
                     text = "Mulai follow teman untuk lihat update mereka",
                     color = TextSub,
                     fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -1771,11 +1973,11 @@ private fun SocialLineScreen(
                 .align(Alignment.BottomEnd)
                 .padding(
                     end = 16.dp,
-                    bottom = 94.dp
+                    bottom = 92.dp
                 )
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF235EC0))
+                .background(Color(0xFF2462C7))
                 .clickable { },
             contentAlignment = Alignment.Center
         ) {
@@ -1793,141 +1995,179 @@ private fun SocialLineScreen(
 private fun ProfileScreen(
     onBack: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 22.dp,
-                bottom = 30.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = onBack) {
-                        Text(
-                            text = "‹",
-                            color = TextMain,
-                            fontSize = 34.sp
-                        )
-                    }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 20.dp,
+            bottom = 30.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = TextMain
+                    )
+                }
 
-                    Spacer(Modifier.width(3.dp))
+                Text(
+                    text = "Profil",
+                    color = TextMain,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = null,
+                    tint = TextMain
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(82.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFFC9A18F),
+                                    Color(0xFF7A5B64)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "L",
+                        color = Color.White,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(Modifier.width(14.dp))
+
+                Column {
+                    Text(
+                        text = "Lucky",
+                        color = TextMain,
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
                     Text(
-                        text = "Profil",
-                        color = TextMain,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = null,
-                        tint = TextMain,
-                        modifier = Modifier.size(28.dp)
+                        text = "Lvl. 1  •  #1485221",
+                        color = TextSub
                     )
                 }
             }
+        }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(82.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(
-                                        Color(0xFFC6A08F),
-                                        Color(0xFF775A63)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "L",
-                            color = Color.White,
-                            fontSize = 35.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+        item {
+            ProfileItem("Watch History", Icons.Outlined.History)
+        }
 
-                    Spacer(Modifier.width(14.dp))
+        item {
+            ProfileItem("My Subscriptions", Icons.Outlined.BookmarkBorder)
+        }
 
-                    Column {
-                        Text(
-                            text = "Lucky",
-                            color = TextMain,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Lvl. 1  •  #1485221",
-                            color = TextSub
-                        )
-                    }
-                }
-            }
+        item {
+            ProfileItem("Favorites", Icons.Outlined.FavoriteBorder)
+        }
 
-            item { ProfileEntry("Watch History", Icons.Outlined.History) }
-            item { ProfileEntry("My Subscriptions", Icons.Outlined.BookmarkBorder) }
-            item { ProfileEntry("Favorites", Icons.Outlined.Star) }
-            item { ProfileEntry("Downloads", Icons.Outlined.Download) }
-            item { ProfileEntry("Notifications", Icons.Outlined.NotificationsNone) }
-            item { ProfileEntry("Player Settings", Icons.Outlined.SmartDisplay) }
-            item { ProfileEntry("Appearance", Icons.Outlined.Palette) }
-            item { ProfileEntry("Language", Icons.Outlined.Language) }
+        item {
+            ProfileItem("Downloads", Icons.Outlined.Download)
+        }
+
+        item {
+            ProfileItem("Notifications", Icons.Outlined.NotificationsNone)
+        }
+
+        item {
+            ProfileItem("Player Settings", Icons.Outlined.SmartDisplay)
+        }
+
+        item {
+            ProfileItem("Appearance", Icons.Outlined.Palette)
+        }
+
+        item {
+            ProfileItem("Language", Icons.Outlined.Language)
+        }
+
+        item {
+            ProfileItem("Clear History", Icons.Outlined.DeleteOutline)
         }
     }
 }
 
 @Composable
-private fun ProfileEntry(
+private fun ProfileItem(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface)
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp),
+            modifier = Modifier.padding(15.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextSub,
-                modifier = Modifier.size(23.dp)
+                tint = TextSub
             )
+
             Spacer(Modifier.width(12.dp))
+
             Text(
                 text = title,
                 color = TextMain,
                 modifier = Modifier.weight(1f)
             )
+
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = TextSub,
-                modifier = Modifier.size(24.dp)
+                tint = TextSub
             )
         }
+    }
+}
+
+private fun compactCount(value: Int): String {
+    return when {
+        value >= 1_000_000 -> {
+            String.format("%.1fM", value / 1_000_000.0)
+        }
+        value >= 1_000 -> {
+            String.format("%.1fK", value / 1_000.0)
+        }
+        else -> value.toString()
     }
 }

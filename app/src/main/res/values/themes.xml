@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style
-        name="Theme.Hibikuroll"
-        parent="android:style/Theme.Material.NoActionBar">
+    <style name="Theme.Hibikuroll" parent="androidx.core:style/Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/hibikuroll_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Hibikuroll.App</item>
+    </style>
 
+    <style name="Theme.Hibikuroll.App" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#101114</item>
         <item name="android:colorAccent">#FFC928</item>
-        <item name="android:windowBackground">#000000</item>
-
+        <item name="android:navigationBarColor">#101114</item>
+        <item name="android:statusBarColor">#101114</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
 </resources>
